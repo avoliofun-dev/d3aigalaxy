@@ -852,10 +852,13 @@
     var activeConvId = null;
     var busy = false;
 
+    var DEFAULT_SUPABASE_URL = "https://qiwdwvxtogufgyzyuktt.supabase.co";
+    var DEFAULT_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFpd2R3dnh0b2d1Zmd5enl1a3R0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM2OTI2MjUsImV4cCI6MjEwOTI2ODYyNX0.kFKH4XXypt19mpyDqPIWPL_9_xBOr83RkwaTS4_wMeg";
+
     // Inisialisasi Supabase
     function initSb() {
-      var url = localStorage.getItem('galaxy_supabase_url');
-      var key = localStorage.getItem('galaxy_supabase_key');
+      var url = localStorage.getItem('galaxy_supabase_url') || DEFAULT_SUPABASE_URL;
+      var key = localStorage.getItem('galaxy_supabase_key') || DEFAULT_SUPABASE_ANON_KEY;
       if (url && key && window.supabase && window.supabase.createClient) {
         try {
           client = window.supabase.createClient(url, key);
@@ -1062,8 +1065,8 @@
       if (tid === 'tabConfig') {
         document.getElementById('authFormArea').style.display = 'none';
         document.getElementById('configFormArea').style.display = 'block';
-        document.getElementById('cfgUrl').value = localStorage.getItem('galaxy_supabase_url') || '';
-        document.getElementById('cfgKey').value = localStorage.getItem('galaxy_supabase_key') || '';
+        document.getElementById('cfgUrl').value = localStorage.getItem('galaxy_supabase_url') || DEFAULT_SUPABASE_URL;
+        document.getElementById('cfgKey').value = localStorage.getItem('galaxy_supabase_key') || DEFAULT_SUPABASE_ANON_KEY;
       } else {
         document.getElementById('configFormArea').style.display = 'none';
         document.getElementById('authFormArea').style.display = 'block';
