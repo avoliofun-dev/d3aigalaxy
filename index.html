@@ -404,13 +404,14 @@ function paint(){
 }
 
 var th=.6,ph=1.25,rad=300,radG=300,rad0=300,tgt=new V(),goal=new V(),mot=true,T=0,drag=0;
+function lim(x){return Math.min(rad0*1.8,Math.max(rad0*.12,x))}
 function size(){
-  var w=innerWidth,h=innerHeight;
+  var w=innerWidth,h=innerHeight,o=rad0;
   R.setPixelRatio(Math.min(devicePixelRatio||1,2));R.setSize(w,h,false);
   C.aspect=w/h;C.updateProjectionMatrix();
-  rad0=M*(w/h<1?3.6:2.5);rad=radG=rad0;
+  rad0=M*(w/h<1?3.6:2.5);var r=rad0/o;radG*=r;rad*=r;
 }
-size();addEventListener("resize",size);
+rad0=M*2.5;rad=radG=rad0;size();addEventListener("resize",size);
 
 function frame(){
   requestAnimationFrame(frame);
@@ -430,39 +431,110 @@ function frame(){
   nodes.forEach(function(n){
     if(n.pu>.01){n.pu*=.93;var s=n.h*(1+n.pu*.3);n.spr.scale.set(s*n.ar,s,1)}
   });
+
+  if(mot&&alpha>0){
+    simStep();
+    nodes.forEach(function(n){n.spr.position.copy(n.p)});
+    edges.forEach(function(e,i){e.a.p.toArray(lp,i*6);e.b.p.toArray(lp,i*6+3)});
+    lg.attributes.position.needsUpdate=true;
+  }
   R.render(S,C);
 }
 frame();
 
-// Interaksi Mouse & Sentuh
+// Interaksi Mouse & Sentuh (Termasuk Gestur Drag Node & Pinch-to-Zoom di HP)
 var pts={},down=null,moved=0;
 cv.addEventListener("pointerdown",function(ev){
   cv.setPointerCapture(ev.pointerId);pts[ev.pointerId]=[ev.clientX,ev.clientY];
   down=1;moved=0;drag=1;cv.style.cursor="grabbing";
+  dn=null;pin=null;
+  if(Object.keys(pts).length===1&&ev.button===0&&!ev.shiftKey){
+    var hn=hitNode(ev);
+    if(hn){dn=hn;startDrag(hn,ev)}
+  }
 });
+cv.addEventListener("contextmenu",function(ev){ev.preventDefault()});
 cv.addEventListener("pointermove",function(ev){
   var p=pts[ev.pointerId];if(!p)return;
-  var dx=ev.clientX-p[0],dy=ev.clientY-p[1];
-  moved+=Math.abs(dx)+Math.abs(dy);
-  th+=dx*.006;ph=Math.min(3,Math.max(.15,ph-dy*.006));
-  p[0]=ev.clientX;p[1]=ev.clientY;
+  var ids=Object.keys(pts);
+  if(ids.length===2){
+    // Gestur 2 jari di HP: Pinch untuk Zoom In/Out & Dua Jari untuk Pan
+    var o=pts[ids[0]==ev.pointerId?ids[1]:ids[0]],d1=Math.hypot(p[0]-o[0],p[1]-o[1]);
+    panBy((ev.clientX-p[0])/2,(ev.clientY-p[1])/2);
+    p[0]=ev.clientX;p[1]=ev.clientY;
+    var d2=Math.hypot(p[0]-o[0],p[1]-o[1]);
+    if(d2>0)radG=lim(radG*d1/d2);
+    moved=9;
+  }
+  else{
+    var dx=ev.clientX-p[0],dy=ev.clientY-p[1];
+    moved+=Math.abs(dx)+Math.abs(dy);
+    if(dn){
+      // Gestur drag memindahkan bubble/node
+      if(moved>6)dragNode(ev);
+    }
+    else if(ev.shiftKey||(ev.buttons&6)){
+      panBy(dx,dy);
+    }
+    else{
+      // Geser 1 jari untuk rotasi kamera 3D
+      th+=dx*.006;ph=Math.min(3,Math.max(.15,ph-dy*.006));
+    }
+    p[0]=ev.clientX;p[1]=ev.clientY;
+  }
 });
 function up(ev){
   delete pts[ev.pointerId];drag=Object.keys(pts).length>0;cv.style.cursor="grab";
+  if(!drag){pin=null;dn=null}
   if(ev.type==="pointerup"&&moved<6&&down)pick(ev);
   down=null;
 }
 cv.addEventListener("pointerup",up);cv.addEventListener("pointercancel",up);
 cv.addEventListener("wheel",function(ev){
-  ev.preventDefault();radG=Math.min(rad0*2.2,Math.max(rad0*.15,radG*(1+ev.deltaY*.0012)));
+  ev.preventDefault();radG=lim(radG*(1+ev.deltaY*.0012));
 },{passive:false});
 
-var ray=new THREE.Raycaster();
-function pick(ev){
-  var ndc=new THREE.Vector2(ev.clientX/innerWidth*2-1,-(ev.clientY/innerHeight)*2+1);
-  ray.setFromCamera(ndc,C);
+var ray=new THREE.Raycaster(),dn=null,pin=null,alpha=0,dplane=new THREE.Plane(),dhit=new V(),doff=new V();
+function ndc(ev){return new THREE.Vector2(ev.clientX/innerWidth*2-1,-(ev.clientY/innerHeight)*2+1)}
+function hitNode(ev){
+  ray.setFromCamera(ndc(ev),C);
   var h=ray.intersectObjects(nodes.filter(vis).map(function(n){return n.spr}));
-  select(h.length?h[0].object.userData.n:null);
+  return h.length?h[0].object.userData.n:null;
+}
+function startDrag(n,ev){
+  var nv=new V();C.getWorldDirection(nv);dplane.setFromNormalAndCoplanarPoint(nv,n.p);
+  ray.setFromCamera(ndc(ev),C);
+  if(ray.ray.intersectPlane(dplane,dhit))doff.copy(n.p).sub(dhit);else doff.set(0,0,0);
+}
+function dragNode(ev){
+  ray.setFromCamera(ndc(ev),C);
+  if(!ray.ray.intersectPlane(dplane,dhit))return;
+  pin=dn;dn.fx=true;dn.p.copy(dhit).add(doff);dn.f.set(0,0,0);alpha=1;
+}
+function panBy(dx,dy){
+  var e=C.matrixWorld.elements,k=2*rad*Math.tan(25*Math.PI/180)/innerHeight,mx=-dx*k,my=dy*k,v=new V(e[0]*mx+e[4]*my,e[1]*mx+e[5]*my,e[2]*mx+e[6]*my);
+  goal.add(v);tgt.add(v);
+}
+function simStep(){
+  nodes.forEach(function(n){n.f.set(0,0,0)});
+  for(var i=0;i<nodes.length;i++)for(var j=i+1;j<nodes.length;j++){
+    var a=nodes[i],b=nodes[j];d.copy(a.p).sub(b.p);var l=d.length()+.1;
+    d.multiplyScalar(9000/(l*l)/l);a.f.add(d);b.f.sub(d);
+  }
+  edges.forEach(function(e){
+    d.copy(e.b.p).sub(e.a.p);var l=d.length()+.1;
+    d.multiplyScalar((l-110)*.05/l);e.a.f.add(d);e.b.f.sub(d);
+  });
+  nodes.forEach(function(n){
+    if(n===pin||n.fx)return;
+    n.f.addScaledVector(n.p,-.02);n.p.addScaledVector(n.f.clampLength(0,10),alpha);
+  });
+  alpha*=.965;if(alpha<.004)alpha=0;
+}
+
+function pick(ev){
+  var t=hitNode(ev);
+  select(t);
 }
 
 var pn=document.getElementById("panel");
