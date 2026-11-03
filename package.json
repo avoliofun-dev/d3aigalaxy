@@ -2,7 +2,6 @@
   "name": "galaxy-ai-agent",
   "version": "1.0.0",
   "description": "Galaxy AI Agent - Personal AI Assistant & Agent in 3D Galaxy Space",
-  "main": "server.js",
   "scripts": {
     "dev": "node server.js",
     "start": "node server.js",

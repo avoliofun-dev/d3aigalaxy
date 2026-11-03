@@ -91,9 +91,18 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  // 3. Routing Static Files (index.html, dll.)
-  let filePath = urlPath === '/' ? '/index.html' : urlPath;
-  const safePath = path.normalize(path.join(__dirname, filePath));
+  // 3. Routing Static Files (index.html, dll.) dengan fallback SPA
+  let cleanUrl = (urlPath || '').trim();
+  try {
+    cleanUrl = decodeURIComponent(cleanUrl);
+  } catch(e){}
+
+  // Jika URL kosong, hanya '/', atau root request -> langsung arahkan ke index.html
+  if (!cleanUrl || cleanUrl === '/' || cleanUrl === '') {
+    cleanUrl = '/index.html';
+  }
+
+  let safePath = path.normalize(path.join(__dirname, cleanUrl));
 
   // Cegah directory traversal
   if (!safePath.startsWith(__dirname)) {
@@ -102,11 +111,21 @@ const server = http.createServer((req, res) => {
     return;
   }
 
+  // Jika target adalah folder, cari index.html di dalamnya
+  if (fs.existsSync(safePath) && fs.statSync(safePath).isDirectory()) {
+    safePath = path.join(safePath, 'index.html');
+  }
+
+  // Fallback: jika file tidak ada di disk, fallback sajikan index.html (SPA routing)
+  if (!fs.existsSync(safePath) || !fs.statSync(safePath).isFile()) {
+    safePath = path.join(__dirname, 'index.html');
+  }
+
   fs.stat(safePath, (err, stats) => {
     if (err || !stats.isFile()) {
       res.statusCode = 404;
       res.setHeader('Content-Type', 'text/plain; charset=utf-8');
-      res.end('File tidak ditemukan: ' + urlPath);
+      res.end('File index.html tidak ditemukan pada direktori server.');
       return;
     }
 

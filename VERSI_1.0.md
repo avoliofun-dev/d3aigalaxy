@@ -52,3 +52,4 @@ Versi 1.0 sepenuhnya meninggalkan data contoh dummy lama (Rani Wijaya) dan mengg
 * **Pembersihan Cache Lama**: Menghapus kunci penyimpanan lama `brain3d` dan beralih ke `galaxy_agent_graph_v1`.
 * **Tombol Reset Node v1.0**: Pengguna dapat mengklik tombol *"Reset Node v1.0"* di bilah navigasi atas untuk langsung memulihkan graf ke kondisi bersih Versi 1.0 jika ada cache peramban yang tersisa.
 * **Isolasi Variabel**: Memastikan tidak ada tabrakan antara pustaka CDN Supabase dan skrip Three.js.
+
