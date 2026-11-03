@@ -287,6 +287,7 @@
       <button class="act" id="authBtn">Masuk / Akun</button>
 
       <!-- Kontrol 3D bawaan -->
+      <button class="act sm" id="resetV1Btn" title="Reset ke Node Versi 1.0">Reset Node v1.0</button>
       <button class="act sm" id="chk">Periksa</button>
       <button class="act sm" id="mot" aria-pressed="true">Hentikan gerak</button>
       <button class="act sm" id="ctr">Pusatkan</button>
@@ -428,48 +429,50 @@
   <!-- ========================================================== -->
   <script>
   (function(){
-    var N = [
-      ["rani", "Rani Wijaya", "identitas", {"lahir": "1997", "domisili": "Bandung", "bahasa": "Indonesia, Inggris"}, "Product designer yang mulai membangun produk sendiri."],
-      ["nilai", "Nilai Hidup", "nilai", {"inti": "jujur, rapi, belajar terus"}, "Pegangan yang dipakai saat memilih pekerjaan dan proyek."],
-      ["goal-studio", "Tujuan: Studio Mandiri", "tujuan", {"target": "2028"}, "Punya studio kecil yang hidup dari produk sendiri."],
-      ["goal-sehat", "Tujuan: Hidup Sehat", "tujuan", {"target": "rutin tiap minggu"}, "Tubuh dan pikiran yang kuat untuk jangka panjang."],
-      ["kerja", "Product Designer", "pekerjaan", {"tempat": "startup fintech", "sejak": "2021"}, "Pekerjaan utama saat ini."],
-      ["kampus", "S1 Desain Komunikasi Visual", "pendidikan", {"lulus": "2019"}, "Dasar pendidikan di bidang visual."],
-      ["proyek-app", "Galaxy AI Agent", "proyek", {"status": "berjalan", "platform": "Web 3D Three.js"}, "Asisten AI pribadi di ruang 3D Galaxy."],
-      ["proyek-blog", "Blog Desain", "proyek", {"status": "aktif", "ritme": "2 tulisan per bulan"}, "Tempat menulis proses dan pelajaran desain."],
-      ["skill-ui", "UI Design", "keahlian", {"level": "ahli"}, "Merancang antarmuka yang jelas."],
-      ["skill-research", "User Research", "keahlian", {"level": "menengah"}, "Wawancara dan uji pengguna."],
-      ["skill-js", "JavaScript", "keahlian", {"level": "belajar"}, "Dibutuhkan untuk membangun aplikasi sendiri."],
-      ["skill-tulis", "Menulis", "keahlian", {"level": "menengah"}, "Menjelaskan ide dengan sederhana."],
-      ["skill-ai", "Prompting & AI", "keahlian", {"level": "menengah"}, "Memakai AI untuk mempercepat riset dan kode."],
-      ["keluarga", "Keluarga", "orang", {"anggota": "ayah, ibu, adik"}, "Tempat pulang dan sumber dukungan."],
-      ["sahabat", "Sahabat Kuliah", "orang", {"kontak": "sebulan sekali"}, "Teman lama yang jujur memberi masukan."],
-      ["mentor", "Pak Dimas (Mentor)", "orang", {"bidang": "produk dan bisnis"}, "Mentor yang memberi arah soal studio."],
-      ["hobi-lari", "Lari Pagi", "hobi", {"ritme": "3 kali seminggu"}, "Cara menjaga tubuh dan menjernihkan kepala."],
-      ["hobi-kopi", "Seduh Kopi", "hobi", {"alat": "V60"}, "Ritual pagi dan bahan tulisan."],
-      ["hobi-baca", "Membaca", "hobi", {"fokus": "desain dan psikologi"}, "Sumber ide untuk menulis."],
-      ["kesehatan", "Catatan Kesehatan", "kesehatan", {"sensitivity": "sensitive"}, "Catatan pribadi tentang kondisi tubuh."],
-      ["keuangan", "Keuangan Pribadi", "keuangan", {"sensitivity": "sensitive"}, "Tabungan, pengeluaran, dan dana studio."]
+    // ========================================================
+    // GALAXY AI AGENT — DATASET GRAF VERSI 1.0
+    // ========================================================
+    var DEFAULT_N_V1 = [
+      ["galaxy-core", "Galaxy AI Agent v1.0", "proyek", {"versi": "1.0", "status": "aktif", "platform": "Web 3D Three.js"}, "Pusat interaksi asisten AI pribadi di ruang 3D."],
+      ["creator", "Narendra (Creator)", "identitas", {"peran": "Pemilik & Kreator", "fokus": "AI & Creative Tech", "bahasa": "Indonesia"}, "Pengembang dan pemilik ekosistem Galaxy AI Agent."],
+      ["proj-be-a-leader", "Game: Be A Leader", "proyek", {"jenis": "Game Interaktif", "status": "dalam pengembangan"}, "Proyek game kepemimpinan digital interaktif."],
+      ["proj-cardora", "Cardora", "proyek", {"status": "rencana riset"}, "Inisiatif produk dan inovasi digital Cardora."],
+      ["proj-ekalaya", "Ekalaya", "proyek", {"status": "berjalan"}, "Platform pengetahuan dan teknologi Ekalaya."],
+      ["tech-threejs", "Three.js 3D Space", "keahlian", {"fungsi": "Visualisasi 3D", "level": "inti"}, "Render graf kosmik 3D, bubble interaktif, dan partikel bintang."],
+      ["tech-supabase", "Supabase Database & Auth", "keahlian", {"keamanan": "RLS Aktif", "fitur": "PostgreSQL & Auth"}, "Penyimpanan obrolan, profil, dan memori aman per pengguna."],
+      ["tech-openai", "OpenAI AI Engine", "keahlian", {"model": "gpt-4o-mini", "peran": "Kecerdasan Dialog"}, "Otak utama untuk pemrosesan konteks, penalaran, dan asisten AI."],
+      ["tech-vercel", "Vercel Functions", "keahlian", {"arsitektur": "Serverless API"}, "Hosting web 3D dan backend API yang cepat dan aman."],
+      ["fase-memory", "Long-Term Memory", "tujuan", {"target": "Fase 2", "status": "roadmap"}, "Sistem memori jangka panjang agar AI mengingat seluruh proyek lintas sesi."],
+      ["fase-automation", "Agent Automation", "tujuan", {"target": "Fase 4", "integrasi": "n8n"}, "Kemampuan agent menjalankan tugas nyata dan workflow otomatis."],
+      ["fase-voice-3d", "Multimodal Voice & 3D", "tujuan", {"target": "Fase 5", "fitur": "Audio & Visual"}, "Komunikasi suara dua arah dan avatar 3D yang responsif."]
     ];
 
-    var E = [
-      ["rani", "nilai", "memegang"], ["rani", "goal-studio", "mengejar"], ["rani", "goal-sehat", "mengejar"],
-      ["rani", "kerja", "bekerja sebagai"], ["rani", "kampus", "lulusan"], ["rani", "keluarga", "bagian dari"],
-      ["rani", "sahabat", "berteman dengan"], ["rani", "mentor", "dibimbing oleh"], ["rani", "kesehatan", "mencatat"],
-      ["rani", "keuangan", "mengatur"], ["rani", "proyek-app", "membangun"], ["rani", "proyek-blog", "menulis di"],
-      ["rani", "hobi-lari", "menjalani"], ["rani", "hobi-kopi", "menyukai"], ["rani", "hobi-baca", "menyukai"],
-      ["kerja", "skill-ui", "memakai"], ["kerja", "skill-research", "memakai"], ["kampus", "skill-ui", "membentuk"],
-      ["goal-studio", "proyek-app", "dimulai lewat"], ["proyek-app", "skill-js", "butuh"], ["proyek-app", "skill-ui", "memakai"],
-      ["proyek-app", "skill-ai", "dipercepat oleh"], ["skill-research", "proyek-app", "menguji"], ["proyek-blog", "skill-tulis", "melatih"],
-      ["proyek-blog", "goal-studio", "menarik audiens untuk"], ["mentor", "goal-studio", "mengarahkan"],
-      ["goal-sehat", "hobi-lari", "dijalani lewat"], ["goal-sehat", "kesehatan", "dipantau di"], ["hobi-lari", "sahabat", "bersama"],
-      ["hobi-kopi", "proyek-blog", "jadi bahan"], ["hobi-baca", "skill-tulis", "memperkaya"], ["hobi-baca", "nilai", "menguatkan"],
-      ["nilai", "goal-studio", "mengarahkan"], ["keuangan", "goal-studio", "membiayai"], ["keluarga", "nilai", "membentuk"]
+    var DEFAULT_E_V1 = [
+      ["creator", "galaxy-core", "menggunakan"],
+      ["creator", "proj-be-a-leader", "mengembangkan"],
+      ["creator", "proj-cardora", "merancang"],
+      ["creator", "proj-ekalaya", "membangun"],
+      ["galaxy-core", "proj-be-a-leader", "mendampingi"],
+      ["galaxy-core", "proj-cardora", "mengelola konteks"],
+      ["galaxy-core", "proj-ekalaya", "mengorganisasi"],
+      ["galaxy-core", "tech-threejs", "ditenagai oleh"],
+      ["galaxy-core", "tech-supabase", "terhubung ke"],
+      ["galaxy-core", "tech-openai", "diproses oleh"],
+      ["galaxy-core", "tech-vercel", "dihosting di"],
+      ["galaxy-core", "fase-memory", "menuju"],
+      ["galaxy-core", "fase-automation", "berkembang ke"],
+      ["galaxy-core", "fase-voice-3d", "rencana masa depan"]
     ];
+
+    // Bersihkan cache lama (brain3d) agar node versi 1.0 yang tampil
+    try { localStorage.removeItem("brain3d"); } catch(e){}
+
+    var N = DEFAULT_N_V1;
+    var E = DEFAULT_E_V1;
 
     try {
-      var sv = JSON.parse(localStorage.getItem("brain3d"));
-      if (sv && sv.N && sv.E) { N = sv.N; E = sv.E; }
+      var sv = JSON.parse(localStorage.getItem("galaxy_agent_graph_v1"));
+      if (sv && sv.N && sv.E && sv.N.length > 0) { N = sv.N; E = sv.E; }
     } catch(x){}
 
     var CATS = [
@@ -806,6 +809,17 @@
       mot = !mot; mb.textContent = mot ? "Hentikan gerak" : "Lanjutkan gerak";
       mb.setAttribute("aria-pressed", String(mot));
     };
+
+    var resetBtn = document.getElementById("resetV1Btn");
+    if (resetBtn) {
+      resetBtn.onclick = function(){
+        try {
+          localStorage.removeItem("galaxy_agent_graph_v1");
+          localStorage.removeItem("brain3d");
+        } catch(e){}
+        location.reload();
+      };
+    }
 
     document.getElementById("sum").onclick = function(){
       select(null);
