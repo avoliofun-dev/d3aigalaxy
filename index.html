@@ -1,0 +1,1138 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>Galaxy AI Agent — Ruang 3D Galaxy</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Sora:wght@600&display=swap">
+  
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #05060f;
+      --b1: #1c0b52;
+      --b2: #04334d;
+      --ink: #eaf0ff;
+      --mute: #8d97c4;
+      --glass: rgba(10, 12, 34, 0.72);
+      --glass-card: rgba(14, 17, 44, 0.88);
+      --gb: rgba(120, 140, 255, 0.3);
+      --edge: #3a4690;
+      --lnk: #8fe9ff;
+      --sh: 0 0 0 1px rgba(120, 140, 255, 0.15), 0 14px 44px rgba(0, 0, 0, 0.65);
+      --team: #19e3ff;
+      --process: #ff9f1a;
+      --data: #ff2e93;
+      --gov: #8b5cff;
+      --agent: #8b5cff;
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; overflow: hidden; }
+    body {
+      color: var(--ink);
+      font: 15px/1.55 Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
+      background: radial-gradient(900px 600px at 12% 0%, var(--b1), transparent 70%),
+                  radial-gradient(800px 600px at 100% 100%, var(--b2), transparent 70%),
+                  var(--bg);
+    }
+    canvas#c {
+      position: fixed; inset: 0; width: 100%; height: 100%;
+      touch-action: none; cursor: grab; z-index: 1; display: block;
+    }
+
+    /* Header Nav */
+    header {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 10;
+      display: flex; gap: 12px; align-items: flex-start; justify-content: space-between;
+      padding: calc(env(safe-area-inset-top, 0px) + 14px) 18px 0;
+      pointer-events: none;
+    }
+    header > * { pointer-events: auto; }
+    h1 {
+      font: 600 23px/1.15 Sora, Inter, sans-serif; letter-spacing: -0.02em; margin: 4px 0 0;
+      text-shadow: 0 0 22px rgba(139, 92, 255, 0.65);
+      display: flex; align-items: center; gap: 10px;
+    }
+    h1 small {
+      display: block; font: 400 13px/1.45 Inter, sans-serif; letter-spacing: 0;
+      color: var(--mute); margin-top: 5px; max-width: 36ch;
+    }
+    .badge-fase {
+      font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 999px;
+      background: linear-gradient(135deg, #19e3ff, #8b5cff); color: #05061a;
+      letter-spacing: 0.05em; text-transform: uppercase;
+    }
+
+    .glass, .act, .chips button, aside, .row input, .chat-win, .modal-box {
+      background: var(--glass);
+      border: 1px solid var(--gb);
+      -webkit-backdrop-filter: blur(16px) saturate(1.4);
+      backdrop-filter: blur(16px) saturate(1.4);
+    }
+    .act, .chips button {
+      font: inherit; font-size: 13px; font-weight: 600; color: var(--ink);
+      border-radius: 999px; padding: 7px 14px; cursor: pointer;
+      box-shadow: var(--sh); transition: transform 0.15s, background 0.15s, border-color 0.15s;
+    }
+    .act:hover, .chips button:hover {
+      transform: translateY(-1px); border-color: var(--lnk);
+      box-shadow: 0 0 18px rgba(25, 227, 255, 0.35);
+    }
+    .act.agent-btn {
+      background: linear-gradient(135deg, rgba(139, 92, 255, 0.45), rgba(25, 227, 255, 0.45));
+      border: 1px solid rgba(25, 227, 255, 0.55);
+      box-shadow: 0 0 18px rgba(139, 92, 255, 0.45);
+      display: inline-flex; align-items: center; gap: 7px;
+    }
+    .act.primary {
+      background: linear-gradient(135deg, #19e3ff, #8b5cff 55%, #ff2e93);
+      color: #05061a; border: 0; box-shadow: 0 0 22px rgba(139, 92, 255, 0.5);
+    }
+    .act[aria-pressed="false"] { opacity: 0.6; }
+    .bar { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; align-items: center; }
+
+    /* Tools Bar (Left) */
+    #tools {
+      position: fixed; left: 18px; top: calc(env(safe-area-inset-top, 0px) + 118px);
+      z-index: 5; display: flex; flex-direction: column; gap: 8px;
+      width: min(270px, calc(100% - 36px));
+    }
+    #sq, .lg {
+      background: var(--glass); border: 1px solid var(--gb);
+      -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); box-shadow: var(--sh);
+    }
+    #sq { width: 100%; font: inherit; font-size: 14px; color: var(--ink); border-radius: 999px; padding: 9px 16px; }
+    #sq::placeholder { color: var(--mute); }
+    #leg { display: flex; flex-wrap: wrap; gap: 6px; }
+    .lg {
+      font: inherit; font-size: 12px; font-weight: 500; color: var(--ink);
+      border-radius: 999px; padding: 5px 11px; cursor: pointer;
+      display: inline-flex; align-items: center; gap: 6px;
+    }
+    .lg i { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+    .lg[aria-pressed="false"] { opacity: 0.45; text-decoration: line-through; }
+    .tb { display: flex; flex-wrap: wrap; gap: 6px; }
+    .act.sm { font-size: 12px; padding: 5px 11px; }
+
+    /* Node Info Panel */
+    aside {
+      position: fixed; top: 12px; right: 12px; bottom: 12px; width: 350px; max-width: calc(100% - 24px);
+      border-radius: 22px; box-shadow: var(--sh); overflow: auto;
+      padding: calc(env(safe-area-inset-top, 0px) + 50px) 20px 20px;
+      z-index: 15; transform: translateX(115%); visibility: hidden;
+      transition: transform 0.28s, visibility 0.28s;
+    }
+    aside.open { transform: none; visibility: visible; }
+    aside h2 { font: 600 20px/1.2 Sora, Inter, sans-serif; letter-spacing: -0.01em; margin: 0 0 4px; }
+    .badge { font-size: 13px; color: var(--mute); margin-bottom: 12px; }
+    pre {
+      font: 12.5px/1.7 ui-monospace, Menlo, Consolas, monospace; background: rgba(0, 0, 0, 0.2);
+      border: 1px solid var(--gb); border-radius: 14px; padding: 14px; margin: 0 0 14px; white-space: pre-wrap;
+    }
+    .lnk, .lnk2 { color: var(--lnk); cursor: pointer; text-decoration: underline; background: none; border: 0; font: inherit; padding: 0; }
+    .fm label { display: block; font-size: 13px; color: var(--mute); margin: 12px 0 4px; }
+    .fm input, .fm select, .fm textarea {
+      width: 100%; font: inherit; color: var(--ink); background: rgba(0, 0, 0, 0.25);
+      border: 1px solid var(--gb); border-radius: 12px; padding: 9px 12px;
+    }
+
+    /* ========================================================= */
+    /* GALAXY AI CHAT PANEL                                      */
+    /* ========================================================= */
+    #aiChatWin {
+      position: fixed; right: 18px; bottom: calc(env(safe-area-inset-bottom, 0px) + 18px);
+      width: min(440px, calc(100% - 36px)); height: 600px; max-height: 84vh;
+      z-index: 25; display: flex; flex-direction: column;
+      border-radius: 24px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), 0 0 0 1px var(--gb);
+      overflow: hidden; transform: translateY(115%); opacity: 0; pointer-events: none;
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease;
+    }
+    #aiChatWin.open {
+      transform: translateY(0); opacity: 1; pointer-events: auto;
+    }
+    .chat-head {
+      padding: 14px 18px; display: flex; align-items: center; justify-content: space-between;
+      border-bottom: 1px solid var(--gb); background: rgba(12, 14, 38, 0.9);
+      backdrop-filter: blur(20px);
+    }
+    .chat-agent-profile { display: flex; align-items: center; gap: 10px; }
+    .chat-orb {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: radial-gradient(circle at 30% 30%, #ff2e93, #8b5cff, #19e3ff);
+      box-shadow: 0 0 16px rgba(139, 92, 255, 0.5); display: flex; align-items: center;
+      justify-content: center; font-size: 16px; font-weight: bold; color: #fff;
+    }
+    .chat-status-label { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--mute); }
+    .status-dot {
+      width: 8px; height: 8px; border-radius: 50%; background: #19e3ff;
+      box-shadow: 0 0 8px #19e3ff;
+    }
+    .status-dot.thinking { background: #ff9f1a; box-shadow: 0 0 8px #ff9f1a; animation: pulseDot 1s infinite alternate; }
+    .status-dot.offline { background: #8d97c4; box-shadow: none; }
+    @keyframes pulseDot { from { opacity: 0.3; } to { opacity: 1; } }
+
+    .chat-body-stream {
+      flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 14px;
+    }
+    .chat-body-stream::-webkit-scrollbar { width: 5px; }
+    .chat-body-stream::-webkit-scrollbar-thumb { background: rgba(120, 140, 255, 0.25); border-radius: 4px; }
+
+    .msg-row { display: flex; gap: 10px; max-width: 88%; word-break: break-word; }
+    .msg-row.user { align-self: flex-end; flex-direction: row-reverse; }
+    .msg-row.assistant { align-self: flex-start; }
+
+    .msg-bubble {
+      padding: 11px 16px; border-radius: 18px; font-size: 14px; line-height: 1.5;
+    }
+    .msg-row.user .msg-bubble {
+      background: linear-gradient(135deg, rgba(139, 92, 255, 0.85), rgba(25, 227, 255, 0.85));
+      color: #05061a; font-weight: 500; border-bottom-right-radius: 4px;
+    }
+    .msg-row.assistant .msg-bubble {
+      background: rgba(22, 26, 64, 0.8); border: 1px solid var(--gb);
+      color: var(--ink); border-bottom-left-radius: 4px;
+    }
+
+    .typing-ind {
+      display: inline-flex; gap: 5px; align-items: center; padding: 10px 14px;
+      background: rgba(22, 26, 64, 0.8); border: 1px solid var(--gb); border-radius: 18px;
+    }
+    .typing-dot {
+      width: 6px; height: 6px; background: var(--team); border-radius: 50%;
+      animation: bounce 1.4s infinite ease-in-out both;
+    }
+    .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+    .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+    @keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
+
+    .chat-foot {
+      padding: 12px 16px; border-top: 1px solid var(--gb);
+      background: rgba(10, 12, 34, 0.95); display: flex; flex-direction: column; gap: 8px;
+    }
+    .chat-input-row { display: flex; gap: 8px; align-items: center; }
+    .chat-input-row input {
+      flex: 1; font: inherit; font-size: 14px; color: var(--ink);
+      background: rgba(255, 255, 255, 0.08); border: 1px solid var(--gb);
+      border-radius: 999px; padding: 10px 16px; outline: none;
+    }
+    .chat-input-row input:focus { border-color: var(--lnk); }
+
+    /* Conversation History Drawer */
+    .conv-drawer {
+      position: absolute; inset: 0; background: rgba(8, 10, 28, 0.97); z-index: 10;
+      display: flex; flex-direction: column; padding: 16px;
+      transform: translateX(-100%); transition: transform 0.25s ease;
+    }
+    .conv-drawer.open { transform: translateX(0); }
+    .conv-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; margin: 12px 0; }
+    .conv-item {
+      padding: 10px 14px; border-radius: 10px; font-size: 13.5px; cursor: pointer;
+      background: rgba(255, 255, 255, 0.04); border: 1px solid transparent;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .conv-item:hover, .conv-item.active { background: rgba(139, 92, 255, 0.22); border-color: var(--gb); }
+
+    /* Supabase Auth Modal */
+    .modal-wrap {
+      position: fixed; inset: 0; z-index: 50; background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: center;
+      padding: 18px; visibility: hidden; opacity: 0; transition: opacity 0.2s, visibility 0.2s;
+    }
+    .modal-wrap.open { visibility: visible; opacity: 1; }
+    .modal-box {
+      width: min(430px, 100%); border-radius: 24px; padding: 24px;
+      box-shadow: var(--sh); display: flex; flex-direction: column; gap: 14px;
+    }
+    .modal-tabs { display: flex; gap: 8px; border-bottom: 1px solid var(--gb); padding-bottom: 8px; }
+    .modal-tab {
+      background: none; border: 0; color: var(--mute); font: inherit; font-size: 14px;
+      font-weight: 500; cursor: pointer; padding: 4px 10px;
+    }
+    .modal-tab.active { color: var(--lnk); font-weight: 600; border-bottom: 2px solid var(--lnk); }
+    .auth-alert {
+      font-size: 13px; color: #ff6b8b; background: rgba(255, 46, 147, 0.12);
+      padding: 8px 12px; border-radius: 8px; border: 1px solid rgba(255, 46, 147, 0.3);
+      display: none;
+    }
+
+    @media (max-width: 720px) {
+      #tools { top: calc(env(safe-area-inset-top, 0px) + 65px); }
+      #aiChatWin { width: calc(100% - 24px); right: 12px; bottom: 12px; height: 78vh; }
+      h1 small { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Three.js 3D Galaxy Canvas -->
+  <canvas id="c" aria-label="Graf profil 3D Galaxy"></canvas>
+
+  <!-- Top Navigation Header -->
+  <header>
+    <div>
+      <h1>
+        Galaxy AI Agent
+        <span class="badge-fase">Fase 1</span>
+      </h1>
+      <small>Ruang 3D Galaxy & Asisten AI Pribadi. Seret latar untuk rotasi, klik bubble untuk info.</small>
+    </div>
+    <div class="bar">
+      <!-- Tombol Trigger Chat Galaxy AI -->
+      <button class="act agent-btn" id="openChatBtn">
+        <span class="status-dot" id="headerStatusDot"></span>
+        Chat Galaxy
+      </button>
+
+      <!-- Tombol Akun / Supabase Auth -->
+      <button class="act" id="authBtn">Masuk / Akun</button>
+
+      <!-- Kontrol 3D bawaan -->
+      <button class="act sm" id="chk">Periksa</button>
+      <button class="act sm" id="mot" aria-pressed="true">Hentikan gerak</button>
+      <button class="act sm" id="ctr">Pusatkan</button>
+    </div>
+  </header>
+
+  <!-- Left Tools & Filters Bar -->
+  <div id="tools">
+    <input id="sq" type="search" placeholder="Cari bubble 3D…" autocomplete="off">
+    <div id="leg"></div>
+    <div class="tb">
+      <button class="act sm" id="sum" title="Ringkasan Graf">Ringkasan</button>
+      <button class="act sm" id="tgl" title="Buka/Tutup Cabang">Buka/tutup cabang</button>
+    </div>
+  </div>
+
+  <!-- Side Detail Panel (Bubble 3D details) -->
+  <aside id="panel" aria-live="polite"></aside>
+
+  <!-- ========================================================== -->
+  <!-- FLOATING GALAXY AI CHAT WINDOW                             -->
+  <!-- ========================================================== -->
+  <div id="aiChatWin">
+    <div class="chat-head">
+      <div class="chat-agent-profile">
+        <div class="chat-orb">✦</div>
+        <div>
+          <div style="font-weight:600;font-size:15px;font-family:Sora,Inter,sans-serif;">Galaxy Agent</div>
+          <div class="chat-status-label">
+            <span class="status-dot" id="chatStatusDot"></span>
+            <span id="chatStatusText">Online</span>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;gap:6px;">
+        <button class="act sm" id="convDrawerBtn">☰ Riwayat</button>
+        <button class="act sm" id="closeChatBtn">✕</button>
+      </div>
+    </div>
+
+    <!-- Riwayat Percakapan Drawer -->
+    <div class="conv-drawer" id="convDrawer">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <strong style="font-size:14px;">Riwayat Percakapan</strong>
+        <button class="act sm" id="closeDrawerBtn">✕</button>
+      </div>
+      <button class="act sm primary" id="newChatBtn" style="margin-top:10px;">+ Percakapan Baru</button>
+      <div class="conv-list" id="convList">
+        <div style="color:var(--mute);font-size:13px;padding:8px;">Memuat percakapan...</div>
+      </div>
+    </div>
+
+    <!-- Pesan Percakapan -->
+    <div class="chat-body-stream" id="chatBodyStream">
+      <div class="msg-row assistant">
+        <div class="msg-bubble">
+          Halo! Saya <strong>Galaxy</strong>, asisten AI pribadi Anda di dalam ruang 3D ini. Ada ide, proyek, atau pertanyaan yang ingin kita bahas hari ini?
+        </div>
+      </div>
+    </div>
+
+    <!-- Input Footer -->
+    <div class="chat-foot">
+      <div class="chips" id="quickChips">
+        <button class="act sm" data-prompt="Apa proyek yang sedang dikerjakan saat ini?">Proyek saat ini?</button>
+        <button class="act sm" data-prompt="Bantu buatkan rencana tugas baru.">Rencana tugas</button>
+        <button class="act sm" data-prompt="Jelaskan peranmu sebagai Galaxy AI Agent.">Siapa Galaxy?</button>
+      </div>
+      <div class="chat-input-row">
+        <input type="text" id="chatInput" placeholder="Tanyakan apa saja kepada Galaxy..." autocomplete="off">
+        <button class="act primary sm" id="sendBtn">Kirim</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================== -->
+  <!-- MODAL SUPABASE AUTH & KONEKSI                              -->
+  <!-- ========================================================== -->
+  <div class="modal-wrap" id="authModal">
+    <div class="modal-box">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <h2 style="font:600 20px Sora,sans-serif;margin:0;">Akun & Supabase</h2>
+        <button class="act sm" id="closeAuthModal">✕</button>
+      </div>
+
+      <div class="modal-tabs">
+        <button class="modal-tab active" id="tabLogin">Masuk</button>
+        <button class="modal-tab" id="tabRegister">Daftar</button>
+        <button class="modal-tab" id="tabConfig">Koneksi Supabase</button>
+      </div>
+
+      <div class="auth-alert" id="authAlert"></div>
+
+      <!-- Form Login / Register -->
+      <div id="authFormArea">
+        <div class="fm">
+          <label for="authEmail">Email</label>
+          <input type="email" id="authEmail" placeholder="nama@email.com">
+          <label for="authPassword">Kata Sandi</label>
+          <input type="password" id="authPassword" placeholder="Minimal 6 karakter">
+        </div>
+        <div style="margin-top:16px;display:flex;justify-content:flex-end;gap:8px;">
+          <button class="act primary" id="authSubmitBtn">Masuk</button>
+        </div>
+      </div>
+
+      <!-- Form Setup Supabase Keys -->
+      <div id="configFormArea" style="display:none;">
+        <p style="font-size:13px;color:var(--mute);margin:0 0 10px;">
+          Masukkan Supabase URL dan Anon Key project Anda. Disimpan aman di browser Anda (localStorage).
+        </p>
+        <div class="fm">
+          <label for="cfgUrl">Supabase URL</label>
+          <input type="text" id="cfgUrl" placeholder="https://xyzcompany.supabase.co">
+          <label for="cfgKey">Supabase Anon Key</label>
+          <input type="password" id="cfgKey" placeholder="eyJhbGciOi...">
+        </div>
+        <div style="margin-top:16px;display:flex;justify-content:flex-end;gap:8px;">
+          <button class="act primary" id="saveConfigBtn">Simpan Koneksi</button>
+        </div>
+      </div>
+
+      <!-- Status jika sudah login -->
+      <div id="loggedInArea" style="display:none;">
+        <p style="font-size:14px;" id="loggedInUserText">Anda sedang login.</p>
+        <div style="margin-top:16px;display:flex;justify-content:flex-end;gap:8px;">
+          <button class="act" id="logoutBtn">Keluar (Logout)</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CDN Three.js & Supabase JS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- ========================================================== -->
+  <!-- 1. THREE.JS 3D GALAXY ENGINE CORE                          -->
+  <!-- ========================================================== -->
+  <script>
+  (function(){
+    var N = [
+      ["rani", "Rani Wijaya", "identitas", {"lahir": "1997", "domisili": "Bandung", "bahasa": "Indonesia, Inggris"}, "Product designer yang mulai membangun produk sendiri."],
+      ["nilai", "Nilai Hidup", "nilai", {"inti": "jujur, rapi, belajar terus"}, "Pegangan yang dipakai saat memilih pekerjaan dan proyek."],
+      ["goal-studio", "Tujuan: Studio Mandiri", "tujuan", {"target": "2028"}, "Punya studio kecil yang hidup dari produk sendiri."],
+      ["goal-sehat", "Tujuan: Hidup Sehat", "tujuan", {"target": "rutin tiap minggu"}, "Tubuh dan pikiran yang kuat untuk jangka panjang."],
+      ["kerja", "Product Designer", "pekerjaan", {"tempat": "startup fintech", "sejak": "2021"}, "Pekerjaan utama saat ini."],
+      ["kampus", "S1 Desain Komunikasi Visual", "pendidikan", {"lulus": "2019"}, "Dasar pendidikan di bidang visual."],
+      ["proyek-app", "Galaxy AI Agent", "proyek", {"status": "berjalan", "platform": "Web 3D Three.js"}, "Asisten AI pribadi di ruang 3D Galaxy."],
+      ["proyek-blog", "Blog Desain", "proyek", {"status": "aktif", "ritme": "2 tulisan per bulan"}, "Tempat menulis proses dan pelajaran desain."],
+      ["skill-ui", "UI Design", "keahlian", {"level": "ahli"}, "Merancang antarmuka yang jelas."],
+      ["skill-research", "User Research", "keahlian", {"level": "menengah"}, "Wawancara dan uji pengguna."],
+      ["skill-js", "JavaScript", "keahlian", {"level": "belajar"}, "Dibutuhkan untuk membangun aplikasi sendiri."],
+      ["skill-tulis", "Menulis", "keahlian", {"level": "menengah"}, "Menjelaskan ide dengan sederhana."],
+      ["skill-ai", "Prompting & AI", "keahlian", {"level": "menengah"}, "Memakai AI untuk mempercepat riset dan kode."],
+      ["keluarga", "Keluarga", "orang", {"anggota": "ayah, ibu, adik"}, "Tempat pulang dan sumber dukungan."],
+      ["sahabat", "Sahabat Kuliah", "orang", {"kontak": "sebulan sekali"}, "Teman lama yang jujur memberi masukan."],
+      ["mentor", "Pak Dimas (Mentor)", "orang", {"bidang": "produk dan bisnis"}, "Mentor yang memberi arah soal studio."],
+      ["hobi-lari", "Lari Pagi", "hobi", {"ritme": "3 kali seminggu"}, "Cara menjaga tubuh dan menjernihkan kepala."],
+      ["hobi-kopi", "Seduh Kopi", "hobi", {"alat": "V60"}, "Ritual pagi dan bahan tulisan."],
+      ["hobi-baca", "Membaca", "hobi", {"fokus": "desain dan psikologi"}, "Sumber ide untuk menulis."],
+      ["kesehatan", "Catatan Kesehatan", "kesehatan", {"sensitivity": "sensitive"}, "Catatan pribadi tentang kondisi tubuh."],
+      ["keuangan", "Keuangan Pribadi", "keuangan", {"sensitivity": "sensitive"}, "Tabungan, pengeluaran, dan dana studio."]
+    ];
+
+    var E = [
+      ["rani", "nilai", "memegang"], ["rani", "goal-studio", "mengejar"], ["rani", "goal-sehat", "mengejar"],
+      ["rani", "kerja", "bekerja sebagai"], ["rani", "kampus", "lulusan"], ["rani", "keluarga", "bagian dari"],
+      ["rani", "sahabat", "berteman dengan"], ["rani", "mentor", "dibimbing oleh"], ["rani", "kesehatan", "mencatat"],
+      ["rani", "keuangan", "mengatur"], ["rani", "proyek-app", "membangun"], ["rani", "proyek-blog", "menulis di"],
+      ["rani", "hobi-lari", "menjalani"], ["rani", "hobi-kopi", "menyukai"], ["rani", "hobi-baca", "menyukai"],
+      ["kerja", "skill-ui", "memakai"], ["kerja", "skill-research", "memakai"], ["kampus", "skill-ui", "membentuk"],
+      ["goal-studio", "proyek-app", "dimulai lewat"], ["proyek-app", "skill-js", "butuh"], ["proyek-app", "skill-ui", "memakai"],
+      ["proyek-app", "skill-ai", "dipercepat oleh"], ["skill-research", "proyek-app", "menguji"], ["proyek-blog", "skill-tulis", "melatih"],
+      ["proyek-blog", "goal-studio", "menarik audiens untuk"], ["mentor", "goal-studio", "mengarahkan"],
+      ["goal-sehat", "hobi-lari", "dijalani lewat"], ["goal-sehat", "kesehatan", "dipantau di"], ["hobi-lari", "sahabat", "bersama"],
+      ["hobi-kopi", "proyek-blog", "jadi bahan"], ["hobi-baca", "skill-tulis", "memperkaya"], ["hobi-baca", "nilai", "menguatkan"],
+      ["nilai", "goal-studio", "mengarahkan"], ["keuangan", "goal-studio", "membiayai"], ["keluarga", "nilai", "membentuk"]
+    ];
+
+    try {
+      var sv = JSON.parse(localStorage.getItem("brain3d"));
+      if (sv && sv.N && sv.E) { N = sv.N; E = sv.E; }
+    } catch(x){}
+
+    var CATS = [
+      ["identitas","Identitas"],["kontak","Kontak"],["kesehatan","Kesehatan"],["pendidikan","Pendidikan"],
+      ["pekerjaan","Pekerjaan"],["proyek","Proyek"],["keahlian","Keahlian"],["orang","Orang"],
+      ["hobi","Hobi"],["selera","Selera"],["nilai","Nilai"],["tujuan","Tujuan"],
+      ["keuangan","Keuangan"]
+    ], TYPES = {};
+
+    CATS.forEach(function(c, i){
+      TYPES[c[0]] = { n: c[1], v: "--c-" + c[0] };
+      document.documentElement.style.setProperty("--c-" + c[0], "hsl(" + Math.round((i * 137.5 + 20) % 360) + ",88%,62%)");
+    });
+
+    var hid = {}, opn = {}, ZR = new THREE.Color(0,0,0), depth = 1;
+    function col(v){ return (getComputedStyle(document.documentElement).getPropertyValue(v) || "#19e3ff").trim(); }
+    function vis(n){ return !hid[n.type] && (!n.par || !!opn[n.par]); }
+
+    var V = THREE.Vector3, byId = {}, nodes = N.map(function(d, i){
+      var y = 1 - 2 * (i + 0.5) / N.length, r = Math.sqrt(1 - y * y), a = i * 2.399;
+      var o = { id: d[0], label: d[1], type: d[2] || "identitas", props: d[3] || {}, desc: d[4] || "", par: d[5] || null, p: new V(Math.cos(a)*r*120, y*120, Math.sin(a)*r*120), f: new V(), deg: 0, pu: 0 };
+      byId[o.id] = o; return o;
+    });
+
+    var edges = E.map(function(e){
+      var a = byId[e[0]], b = byId[e[1]];
+      if (!a || !b) return null;
+      var x = { a: a, b: b, verb: e[2] };
+      a.deg++; b.deg++;
+      return x;
+    }).filter(Boolean);
+
+    // Initial 400-iteration force simulation
+    var d = new V();
+    for (var it = 0; it < 400; it++) {
+      nodes.forEach(function(n){ n.f.set(0, 0, 0); });
+      for (var i = 0; i < nodes.length; i++) {
+        for (var j = i + 1; j < nodes.length; j++) {
+          var a = nodes[i], b = nodes[j];
+          d.copy(a.p).sub(b.p);
+          var l = d.length() + 0.1;
+          d.multiplyScalar(9000 / (l * l) / l);
+          a.f.add(d); b.f.sub(d);
+        }
+      }
+      edges.forEach(function(e){
+        d.copy(e.b.p).sub(e.a.p);
+        var l = d.length() + 0.1;
+        d.multiplyScalar((l - (e.b.par === e.a.id || e.a.par === e.b.id ? 48 : 130)) * 0.05 / l);
+        e.a.f.add(d); e.b.f.sub(d);
+      });
+      nodes.forEach(function(n){
+        n.f.addScaledVector(n.p, -0.02);
+        n.p.add(n.f.clampLength(0, 10));
+      });
+    }
+
+    var M = 1; nodes.forEach(function(n){ M = Math.max(M, n.p.length()); });
+
+    var cv = document.getElementById("c");
+    var R = new THREE.WebGLRenderer({ canvas: cv, antialias: true, alpha: true });
+    var S = new THREE.Scene();
+    var C = new THREE.PerspectiveCamera(50, 1, 1, 4000);
+
+    function drawRoundRect(ctx, x, y, w, h, radius) {
+      if (ctx.roundRect) {
+        ctx.roundRect(x, y, w, h, radius);
+      } else {
+        ctx.beginPath();
+        ctx.moveTo(x + radius, y);
+        ctx.lineTo(x + w - radius, y);
+        ctx.quadraticCurveTo(x + w, y, x + w, y + radius);
+        ctx.lineTo(x + w, y + h - radius);
+        ctx.quadraticCurveTo(x + w, y + h, x + w - radius, y + h);
+        ctx.lineTo(x + radius, y + h);
+        ctx.quadraticCurveTo(x, y + h, x, y + h - radius);
+        ctx.lineTo(x, y + radius);
+        ctx.quadraticCurveTo(x, y, x + radius, y);
+        ctx.closePath();
+      }
+    }
+
+    function tex(n){
+      var f = 44, P = 28, c = document.createElement("canvas"), g = c.getContext("2d"), ft = "600 " + f + "px Inter, system-ui, sans-serif";
+      g.font = ft;
+      var w = Math.ceil(g.measureText(n.label).width + f * 1.7), h = Math.ceil(f * 2);
+      c.width = w + 2 * P; c.height = h + 2 * P; g.font = ft;
+      var k = col(TYPES[n.type]?.v || "--team") || "#19e3ff";
+      var gr = g.createLinearGradient(0, P, 0, P + h);
+      try {
+        gr.addColorStop(0, new THREE.Color(k).lerp(new THREE.Color("#ffffff"), 0.28).getStyle());
+        gr.addColorStop(1, k);
+      } catch(e) {
+        gr = k;
+      }
+      g.shadowColor = k; g.shadowBlur = P * 1.1; g.fillStyle = gr;
+      drawRoundRect(g, P, P, w, h, h / 2); g.fill();
+      g.shadowBlur = 0; g.strokeStyle = "rgba(255,255,255,.6)"; g.lineWidth = 2; g.stroke();
+      g.fillStyle = "#05061a"; g.textAlign = "center"; g.textBaseline = "middle";
+      g.fillText(n.label, P + w / 2, P + h / 2 + 2);
+      n.ar = (w + 2 * P) / (h + 2 * P);
+      return new THREE.CanvasTexture(c);
+    }
+
+    function mk(n){
+      n.h = (13 + Math.min(n.deg, 6) * 1.5) * 1.64 * (n.par ? 0.62 : 1);
+      n.spr = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex(n), transparent: true, depthWrite: false }));
+      n.spr.scale.set(n.h * n.ar, n.h, 1);
+      n.spr.position.copy(n.p);
+      n.spr.userData.n = n;
+      S.add(n.spr);
+    }
+    nodes.forEach(mk);
+
+    var dot = (function(){
+      var c = document.createElement("canvas"); c.width = c.height = 64;
+      var g = c.getContext("2d"), r = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+      r.addColorStop(0, "rgba(255,255,255,1)"); r.addColorStop(0.35, "rgba(255,255,255,0.9)"); r.addColorStop(1, "rgba(255,255,255,0)");
+      g.fillStyle = r; g.fillRect(0, 0, 64, 64); return new THREE.CanvasTexture(c);
+    })();
+
+    var lp, ec, pp, pc, lg, pg, lo, po;
+    function buildEdges(){
+      if (lo) { S.remove(lo); S.remove(po); lg.dispose(); pg.dispose(); }
+      var n = edges.length;
+      lp = new Float32Array(n * 6); ec = new Float32Array(n * 6);
+      pp = new Float32Array(n * 6); pc = new Float32Array(n * 6);
+      edges.forEach(function(e, i){
+        e.a.p.toArray(lp, i * 6); e.b.p.toArray(lp, i * 6 + 3);
+      });
+      lg = new THREE.BufferGeometry();
+      lg.setAttribute("position", new THREE.BufferAttribute(lp, 3));
+      lg.setAttribute("color", new THREE.BufferAttribute(ec, 3));
+      lo = new THREE.LineSegments(lg, new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending }));
+      S.add(lo);
+
+      pg = new THREE.BufferGeometry();
+      pg.setAttribute("position", new THREE.BufferAttribute(pp, 3));
+      pg.setAttribute("color", new THREE.BufferAttribute(pc, 3));
+      po = new THREE.Points(pg, new THREE.PointsMaterial({ size: 9, map: dot, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, vertexColors: true, sizeAttenuation: true }));
+      S.add(po);
+    }
+    buildEdges();
+
+    // Starfield Galaxy
+    var sp = new Float32Array(5400);
+    for (var si = 0; si < sp.length; si += 3) {
+      var u = Math.random() * 6.283, w2 = Math.random() * 2 - 1, rr = Math.sqrt(1 - w2 * w2), R2 = M * (2.7 + Math.random() * 5.8);
+      sp[si] = Math.cos(u) * rr * R2; sp[si + 1] = w2 * R2; sp[si + 2] = Math.sin(u) * rr * R2;
+    }
+    var sg = new THREE.BufferGeometry(); sg.setAttribute("position", new THREE.BufferAttribute(sp, 3));
+    var starM = new THREE.PointsMaterial({ size: 3.8, map: dot, transparent: true, opacity: 0.9, depthWrite: false, blending: THREE.AdditiveBlending, sizeAttenuation: true });
+    S.add(new THREE.Points(sg, starM));
+
+    var sel = null, lit = null;
+    function focusSet(){
+      var s = {};
+      if (lit) { lit.forEach(function(i){ s[i] = 1; }); return s; }
+      if (sel) {
+        s[sel.id] = 1; var fr = [sel];
+        for (var k = 0; k < depth; k++) {
+          var nx = [];
+          edges.forEach(function(e){
+            if (s[e.a.id] && !s[e.b.id] && fr.indexOf(e.a) >= 0) { s[e.b.id] = 1; nx.push(e.b); }
+            else if (s[e.b.id] && !s[e.a.id] && fr.indexOf(e.b) >= 0) { s[e.a.id] = 1; nx.push(e.a); }
+          });
+          fr = nx;
+        }
+        return s;
+      }
+      return null;
+    }
+
+    function paint(){
+      var fs = focusSet();
+      var eC = new THREE.Color(col("--edge") || "#3a4690");
+      var hi = new THREE.Color(col("--ink") || "#eaf0ff");
+      var dim = eC.clone().lerp(new THREE.Color(col("--bg") || "#05060f"), 0.85);
+
+      nodes.forEach(function(n){
+        n.spr.visible = vis(n);
+        n.spr.material.opacity = !fs || fs[n.id] ? 1 : 0.15;
+      });
+
+      edges.forEach(function(e, i){
+        var on = !fs || (lit || depth > 1 ? (fs[e.a.id] && fs[e.b.id]) : (e.a === sel || e.b === sel));
+        var c = !fs ? eC : (on ? hi : dim);
+        var q = on ? new THREE.Color(col(TYPES[e.a.type]?.v || "--team")) : dim;
+        var z = !vis(e.a) || !vis(e.b);
+        for (var k = 0; k < 2; k++) {
+          (z ? ZR : c).toArray(ec, i * 6 + k * 3);
+          (z ? ZR : q).toArray(pc, i * 6 + k * 3);
+        }
+      });
+      if (lg) lg.attributes.color.needsUpdate = true;
+      if (pg) pg.attributes.color.needsUpdate = true;
+    }
+
+    var th = 0.6, ph = 1.25, rad = 300, radG = 300, rad0 = 300, tgt = new V(), goal = new V(), mot = true, T = 0, drag = 0;
+    function size(){
+      var w = innerWidth, h = innerHeight;
+      R.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
+      R.setSize(w, h, false);
+      C.aspect = w / h; C.updateProjectionMatrix();
+      rad0 = M * (w / h < 1 ? 3.6 : 2.5);
+      rad = radG = rad0;
+    }
+    rad0 = M * 2.5; rad = radG = rad0;
+    size();
+    addEventListener("resize", size);
+
+    function frame(){
+      requestAnimationFrame(frame);
+      T++;
+      if (mot && !drag && !sel && !lit) th += 0.0015;
+      tgt.lerp(goal, 0.07); rad += (radG - rad) * 0.07;
+      C.position.set(tgt.x + rad * Math.sin(ph) * Math.cos(th), tgt.y + rad * Math.cos(ph), tgt.z + rad * Math.sin(ph) * Math.sin(th));
+      C.lookAt(tgt);
+
+      edges.forEach(function(e, i){
+        for (var k = 0; k < 2; k++) {
+          var t = (T * 0.004 + i * 0.137 + k * 0.5) % 1;
+          d.copy(e.b.p).sub(e.a.p).multiplyScalar(t).add(e.a.p).toArray(pp, i * 6 + k * 3);
+          if (t > 0.985) e.b.pu = 1;
+        }
+      });
+      if (pg) pg.attributes.position.needsUpdate = true;
+
+      nodes.forEach(function(n){
+        if (n.pu > 0.01) {
+          n.pu *= 0.93;
+          var s = n.h * (1 + n.pu * 0.3);
+          n.spr.scale.set(s * n.ar, s, 1);
+        }
+      });
+
+      R.render(S, C);
+    }
+    frame();
+
+    // Controls
+    var pts = {}, down = null, moved = 0;
+    cv.addEventListener("pointerdown", function(ev){
+      cv.setPointerCapture(ev.pointerId);
+      pts[ev.pointerId] = [ev.clientX, ev.clientY];
+      down = 1; moved = 0; drag = 1; cv.style.cursor = "grabbing";
+    });
+    cv.addEventListener("pointermove", function(ev){
+      var p = pts[ev.pointerId]; if (!p) return;
+      var dx = ev.clientX - p[0], dy = ev.clientY - p[1];
+      moved += Math.abs(dx) + Math.abs(dy);
+      th += dx * 0.006; ph = Math.min(3, Math.max(0.15, ph - dy * 0.006));
+      p[0] = ev.clientX; p[1] = ev.clientY;
+    });
+    function up(ev){
+      delete pts[ev.pointerId]; drag = Object.keys(pts).length > 0;
+      cv.style.cursor = "grab";
+      if (ev.type === "pointerup" && moved < 6 && down) pick(ev);
+      down = null;
+    }
+    cv.addEventListener("pointerup", up);
+    cv.addEventListener("wheel", function(ev){
+      ev.preventDefault(); radG = Math.min(rad0 * 2.2, Math.max(rad0 * 0.15, radG * (1 + ev.deltaY * 0.0012)));
+    }, { passive: false });
+
+    var ray = new THREE.Raycaster();
+    function pick(ev){
+      var ndc = new THREE.Vector2(ev.clientX / innerWidth * 2 - 1, -(ev.clientY / innerHeight) * 2 + 1);
+      ray.setFromCamera(ndc, C);
+      var h = ray.intersectObjects(nodes.filter(vis).map(function(n){ return n.spr; }));
+      select(h.length ? h[0].object.userData.n : null);
+    }
+
+    var pn = document.getElementById("panel");
+    function select(n){
+      sel = n; lit = null;
+      document.body.classList.toggle("pn", !!n);
+      pn.classList.toggle("open", !!n);
+      if (!n) { goal.set(0, 0, 0); radG = rad0; paint(); return; }
+      goal.copy(n.p); radG = rad0 * 0.55;
+
+      var y = "---\ntype: " + n.type + "\n";
+      Object.keys(n.props).forEach(function(k){ y += k + ": " + n.props[k] + "\n"; });
+      y += "---\n\n# " + n.label + "\n" + n.desc + "\n\n";
+
+      pn.innerHTML = `
+        <button class="act" id="closePanelBtn" style="position:absolute;top:14px;right:14px;">Tutup</button>
+        <h2>${n.label}</h2>
+        <div class="badge">${TYPES[n.type]?.n || n.type}</div>
+        <pre>${y}</pre>
+        <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="act primary sm" id="askAiNodeBtn">✦ Tanyakan ke Galaxy AI</button>
+        </div>
+      `;
+      document.getElementById('closePanelBtn').onclick = function(){ select(null); };
+      document.getElementById('askAiNodeBtn').onclick = function(){
+        window.openGalaxyChatWithPrompt(`Tolong berikan analisis dan panduan tentang "${n.label}" (${n.desc}) dalam konteks proyek saya.`);
+      };
+      paint();
+    }
+
+    // Legend
+    var leg = document.getElementById("leg");
+    Object.keys(TYPES).forEach(function(k){
+      var b = document.createElement("button");
+      b.className = "lg";
+      b.innerHTML = '<i style="background:' + col(TYPES[k].v) + '"></i>' + TYPES[k].n;
+      b.onclick = function(){
+        hid[k] = !hid[k];
+        b.setAttribute("aria-pressed", String(!hid[k]));
+        if (sel && hid[sel.type]) select(null);
+        paint();
+      };
+      leg.appendChild(b);
+    });
+
+    // Search
+    var sq = document.getElementById("sq");
+    sq.addEventListener("input", function(){
+      var q = sq.value.trim().toLowerCase();
+      if (!q) { lit = null; paint(); goal.set(0,0,0); radG = rad0; return; }
+      var m = nodes.filter(function(n){ return !hid[n.type] && (n.label + " " + n.desc).toLowerCase().indexOf(q) >= 0; });
+      if (m.length) {
+        lit = m.map(function(n){ return n.id; });
+        var c = new V(); m.forEach(function(n){ c.add(n.p); });
+        goal.copy(c.divideScalar(m.length)); radG = rad0 * 0.75;
+      } else { lit = null; }
+      paint();
+    });
+
+    document.getElementById("ctr").onclick = function(){ goal.set(0,0,0); tgt.set(0,0,0); radG = rad0; };
+    var mb = document.getElementById("mot");
+    mb.onclick = function(){
+      mot = !mot; mb.textContent = mot ? "Hentikan gerak" : "Lanjutkan gerak";
+      mb.setAttribute("aria-pressed", String(mot));
+    };
+
+    document.getElementById("sum").onclick = function(){
+      select(null);
+      alert(`Galaxy 3D Graph:\n${nodes.length} Bubbles terhubung di dalam ruang kosmik.`);
+    };
+
+    function rebuild(){
+      nodes.forEach(function(n){
+        if (n.spr && n.spr.material && n.spr.material.map) {
+          n.spr.material.map.dispose();
+          n.spr.material.map = tex(n);
+          n.spr.material.needsUpdate = true;
+        }
+      });
+      paint();
+    }
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(rebuild);
+    paint();
+  })();
+  </script>
+
+  <!-- ========================================================== -->
+  <!-- 2. GALAXY AI CHAT & SUPABASE AUTH CONTROLLER               -->
+  <!-- ========================================================== -->
+  <script>
+  (function(){
+    var client = null;
+    var user = null;
+    var token = null;
+    var activeConvId = null;
+    var busy = false;
+
+    // Inisialisasi Supabase
+    function initSb() {
+      var url = localStorage.getItem('galaxy_supabase_url');
+      var key = localStorage.getItem('galaxy_supabase_key');
+      if (url && key && window.supabase && window.supabase.createClient) {
+        try {
+          client = window.supabase.createClient(url, key);
+          checkAuth();
+        } catch(e) {
+          console.error("Supabase init error:", e);
+        }
+      }
+      refreshAuthBtn();
+    }
+
+    async function checkAuth() {
+      if (!client) return;
+      var res = await client.auth.getSession();
+      var session = res.data ? res.data.session : null;
+      if (session) {
+        user = session.user;
+        token = session.access_token;
+        loadConvHistory();
+      } else {
+        user = null;
+        token = null;
+      }
+      refreshAuthBtn();
+    }
+
+    function refreshAuthBtn() {
+      var b = document.getElementById('authBtn');
+      if (user) {
+        var email = user.email || 'Akun';
+        b.textContent = '👤 ' + email.split('@')[0];
+      } else {
+        b.textContent = 'Masuk / Akun';
+      }
+    }
+
+    // Chat UI Controller
+    var chatWin = document.getElementById('aiChatWin');
+    var stream = document.getElementById('chatBodyStream');
+    var chatInput = document.getElementById('chatInput');
+    var sendBtn = document.getElementById('sendBtn');
+    var statDot = document.getElementById('chatStatusDot');
+    var statTxt = document.getElementById('chatStatusText');
+    var headDot = document.getElementById('headerStatusDot');
+
+    function setStatus(s) {
+      if (s === 'thinking') {
+        statDot.className = headDot.className = 'status-dot thinking';
+        statTxt.textContent = 'Berpikir...';
+      } else if (s === 'responding') {
+        statDot.className = headDot.className = 'status-dot thinking';
+        statTxt.textContent = 'Menjawab...';
+      } else {
+        statDot.className = headDot.className = 'status-dot';
+        statTxt.textContent = 'Online';
+      }
+    }
+
+    function addBubble(role, txt) {
+      var row = document.createElement('div');
+      row.className = 'msg-row ' + role;
+      var b = document.createElement('div');
+      b.className = 'msg-bubble';
+      b.textContent = txt;
+      row.appendChild(b);
+      stream.appendChild(row);
+      stream.scrollTop = stream.scrollHeight;
+    }
+
+    function showTyping() {
+      var row = document.createElement('div');
+      row.className = 'msg-row assistant';
+      row.id = 'aiTyping';
+      row.innerHTML = '<div class="typing-ind"><span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span></div>';
+      stream.appendChild(row);
+      stream.scrollTop = stream.scrollHeight;
+    }
+    function hideTyping() {
+      var t = document.getElementById('aiTyping');
+      if (t) t.remove();
+    }
+
+    async function sendMsg(txt) {
+      var message = (txt || chatInput.value).trim();
+      if (!message || busy) return;
+
+      if (!user || !token) {
+        openModal('login');
+        showAlert('Silakan Masuk atau Daftarkan akun terlebih dahulu untuk berdialog dengan Galaxy AI.');
+        return;
+      }
+
+      addBubble('user', message);
+      chatInput.value = '';
+      busy = true;
+      sendBtn.disabled = true;
+      setStatus('thinking');
+      showTyping();
+
+      try {
+        var resp = await fetch('/api/chat', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + token
+          },
+          body: JSON.stringify({
+            conversation_id: activeConvId,
+            message: message
+          })
+        });
+
+        var data = await resp.json();
+        hideTyping();
+
+        if (!resp.ok) {
+          throw new Error(data.error || 'Gagal memproses pesan');
+        }
+
+        activeConvId = data.conversation_id;
+        setStatus('online');
+        addBubble('assistant', data.reply);
+        loadConvHistory();
+      } catch(err) {
+        hideTyping();
+        setStatus('online');
+        addBubble('assistant', '⚠️ Terjadi kesalahan: ' + err.message);
+      } finally {
+        busy = false;
+        sendBtn.disabled = false;
+      }
+    }
+
+    async function loadConvHistory() {
+      if (!client || !user) return;
+      var res = await client
+        .from('ai_conversations')
+        .select('id, title, updated_at')
+        .order('updated_at', { ascending: false });
+
+      var list = document.getElementById('convList');
+      list.innerHTML = '';
+      if (!res.data || res.data.length === 0) {
+        list.innerHTML = '<div style="color:var(--mute);font-size:13px;padding:8px;">Belum ada riwayat percakapan.</div>';
+        return;
+      }
+      res.data.forEach(function(c){
+        var it = document.createElement('div');
+        it.className = 'conv-item' + (c.id === activeConvId ? ' active' : '');
+        it.textContent = c.title;
+        it.onclick = function(){ switchConv(c.id); };
+        list.appendChild(it);
+      });
+    }
+
+    async function switchConv(id) {
+      activeConvId = id;
+      document.getElementById('convDrawer').classList.remove('open');
+      stream.innerHTML = '';
+      setStatus('thinking');
+
+      var res = await client
+        .from('ai_messages')
+        .select('role, content')
+        .eq('conversation_id', id)
+        .order('created_at', { ascending: true });
+
+      setStatus('online');
+      if (res.data && res.data.length) {
+        res.data.forEach(function(m){ addBubble(m.role, m.content); });
+      } else {
+        addBubble('assistant', 'Sesi percakapan dibuka.');
+      }
+      loadConvHistory();
+    }
+
+    // Modal Controller
+    var modal = document.getElementById('authModal');
+    var alertBox = document.getElementById('authAlert');
+
+    function openModal(mode) {
+      modal.classList.add('open');
+      hideAlert();
+      if (user) {
+        document.getElementById('authFormArea').style.display = 'none';
+        document.getElementById('configFormArea').style.display = 'none';
+        document.getElementById('loggedInArea').style.display = 'block';
+        document.getElementById('loggedInUserText').innerHTML = 'Login sebagai: <strong>' + user.email + '</strong>';
+      } else {
+        setTab(mode === 'config' ? 'tabConfig' : 'tabLogin');
+      }
+    }
+
+    function closeModal() { modal.classList.remove('open'); }
+    function showAlert(t) { alertBox.textContent = t; alertBox.style.display = 'block'; }
+    function hideAlert() { alertBox.style.display = 'none'; }
+
+    function setTab(tid) {
+      hideAlert();
+      document.querySelectorAll('.modal-tab').forEach(function(t){ t.classList.remove('active'); });
+      document.getElementById(tid).classList.add('active');
+      document.getElementById('loggedInArea').style.display = 'none';
+
+      if (tid === 'tabConfig') {
+        document.getElementById('authFormArea').style.display = 'none';
+        document.getElementById('configFormArea').style.display = 'block';
+        document.getElementById('cfgUrl').value = localStorage.getItem('galaxy_supabase_url') || '';
+        document.getElementById('cfgKey').value = localStorage.getItem('galaxy_supabase_key') || '';
+      } else {
+        document.getElementById('configFormArea').style.display = 'none';
+        document.getElementById('authFormArea').style.display = 'block';
+        document.getElementById('authSubmitBtn').textContent = (tid === 'tabRegister' ? 'Daftar Akun' : 'Masuk');
+      }
+    }
+
+    // Events
+    document.getElementById('openChatBtn').onclick = function(){ chatWin.classList.toggle('open'); };
+    document.getElementById('closeChatBtn').onclick = function(){ chatWin.classList.remove('open'); };
+    document.getElementById('convDrawerBtn').onclick = function(){
+      document.getElementById('convDrawer').classList.add('open');
+      loadConvHistory();
+    };
+    document.getElementById('closeDrawerBtn').onclick = function(){ document.getElementById('convDrawer').classList.remove('open'); };
+    document.getElementById('newChatBtn').onclick = function(){
+      activeConvId = null;
+      document.getElementById('convDrawer').classList.remove('open');
+      stream.innerHTML = '<div class="msg-row assistant"><div class="msg-bubble">Sesi percakapan baru dimulai! Apa yang ingin kita bahas?</div></div>';
+      loadConvHistory();
+    };
+
+    sendBtn.onclick = function(){ sendMsg(); };
+    chatInput.onkeydown = function(e){ if (e.key === 'Enter') sendMsg(); };
+    document.querySelectorAll('#quickChips button').forEach(function(b){
+      b.onclick = function(){ sendMsg(b.dataset.prompt); };
+    });
+
+    document.getElementById('authBtn').onclick = function(){ openModal(); };
+    document.getElementById('closeAuthModal').onclick = closeModal;
+    document.getElementById('tabLogin').onclick = function(){ setTab('tabLogin'); };
+    document.getElementById('tabRegister').onclick = function(){ setTab('tabRegister'); };
+    document.getElementById('tabConfig').onclick = function(){ setTab('tabConfig'); };
+
+    document.getElementById('saveConfigBtn').onclick = function(){
+      var u = document.getElementById('cfgUrl').value.trim();
+      var k = document.getElementById('cfgKey').value.trim();
+      if (!u || !k) { showAlert('Supabase URL dan Anon Key wajib diisi.'); return; }
+      localStorage.setItem('galaxy_supabase_url', u);
+      localStorage.setItem('galaxy_supabase_key', k);
+      initSb();
+      alert('Koneksi Supabase berhasil disimpan!');
+      setTab('tabLogin');
+    };
+
+    document.getElementById('authSubmitBtn').onclick = async function(){
+      if (!client) { showAlert('Koneksi Supabase belum diset. Silakan isi di tab "Koneksi Supabase".'); return; }
+      var em = document.getElementById('authEmail').value.trim();
+      var pw = document.getElementById('authPassword').value;
+      if (!em || !pw) { showAlert('Email dan kata sandi wajib diisi.'); return; }
+
+      var isReg = document.getElementById('tabRegister').classList.contains('active');
+      hideAlert();
+      if (isReg) {
+        var r = await client.auth.signUp({ email: em, password: pw });
+        if (r.error) showAlert(r.error.message);
+        else {
+          alert('Pendaftaran berhasil! Silakan periksa konfirmasi jika aktif, atau langsung masuk.');
+          checkAuth(); closeModal();
+        }
+      } else {
+        var r2 = await client.auth.signInWithPassword({ email: em, password: pw });
+        if (r2.error) showAlert(r2.error.message);
+        else {
+          await checkAuth(); closeModal();
+        }
+      }
+    };
+
+    document.getElementById('logoutBtn').onclick = async function(){
+      if (client) await client.auth.signOut();
+      user = null; token = null;
+      refreshAuthBtn(); closeModal();
+    };
+
+    window.openGalaxyChatWithPrompt = function(promptText) {
+      chatWin.classList.add('open');
+      sendMsg(promptText);
+    };
+
+    // Jalankan inisialisasi awal
+    initSb();
+  })();
+  </script>
+</body>
+</html>

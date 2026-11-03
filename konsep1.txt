@@ -1,0 +1,505 @@
+# GALAXY AI AGENT
+## Dokumen Konsep Produk — Versi 1.0
+
+**Nama proyek:** Galaxy AI Agent  
+**Platform:** Web pribadi dengan ruang antarmuka 3D Galaxy  
+**Jenis:** Personal AI Assistant & AI Agent  
+**Database:** Supabase  
+**AI Engine:** OpenAI API  
+**Hosting:** Vercel  
+
+---
+
+# 1. RINGKASAN KONSEP
+
+Galaxy AI Agent adalah asisten AI pribadi yang dikembangkan dari web Profil Lengkap Ruang 3D AI Galaxy.
+
+AI akan hadir sebagai karakter di dalam ruang 3D Galaxy dan dapat diajak berkomunikasi melalui chat. Pada pengembangan selanjutnya, AI juga dapat berkomunikasi melalui suara dan menjalankan tugas tertentu.
+
+Tidak seperti chatbot biasa, Galaxy AI Agent dirancang agar mampu menggunakan riwayat percakapan dan memori jangka panjang untuk memahami konteks pengguna.
+
+### Prinsip utama
+
+1. Semua percakapan dapat disimpan secara permanen.
+2. AI dapat mengingat informasi penting dari percakapan sebelumnya.
+3. AI dapat melanjutkan pembahasan proyek dari sesi terdahulu.
+4. Pengguna dapat melihat dan mengelola memori AI.
+5. AI dapat dikembangkan menjadi agent yang menjalankan tugas.
+6. Semua data pribadi dilindungi dengan autentikasi dan hak akses.
+
+# 2. VISI DAN TUJUAN
+
+### Visi
+
+Membangun asisten AI pribadi yang menjadi pusat interaksi, pengetahuan, dan pengelolaan pekerjaan digital pengguna.
+
+### Tujuan utama
+
+- Mengubah web 3D Galaxy menjadi ruang interaksi AI.
+- Menghadirkan karakter AI yang dapat diajak berdialog.
+- Menyimpan seluruh riwayat percakapan.
+- Membangun memori jangka panjang.
+- Menghubungkan AI dengan berbagai tools.
+- Mengembangkan AI menjadi asisten yang dapat menyelesaikan pekerjaan.
+
+# 3. PENGALAMAN PENGGUNA
+
+Contoh interaksi:
+
+**Hari pertama**
+
+Pengguna:
+"Aku sedang mengembangkan game Be A Leader."
+
+AI:
+"Baik, kita bisa menyimpan proyek Be A Leader sebagai salah satu proyek yang sedang kamu kerjakan."
+
+Sistem menyimpan pesan dan membuat kandidat memori mengenai proyek tersebut.
+
+**Hari berikutnya**
+
+Pengguna:
+"Lanjutkan proyek game kemarin."
+
+AI:
+"Kita lanjutkan Be A Leader. Aku akan menggunakan konteks pembahasan sebelumnya."
+
+AI mengambil informasi relevan dari database sebelum memberikan jawaban.
+
+### Alur penggunaan
+
+1. Pengguna membuka web Galaxy AI Agent.
+2. Pengguna login.
+3. Pengguna membuka ruang 3D Galaxy.
+4. Pengguna membuka panel chat.
+5. Pengguna mengirim pesan.
+6. Server menyimpan pesan pengguna.
+7. Server mengambil memori dan riwayat relevan.
+8. Server mengirim konteks ke model AI.
+9. AI menghasilkan jawaban.
+10. Server menyimpan jawaban AI.
+11. Jawaban ditampilkan di panel chat.
+
+# 4. ARSITEKTUR TEKNOLOGI
+
+| Komponen | Teknologi | Fungsi |
+|---|---|---|
+| Frontend | HTML, CSS, JavaScript | Antarmuka web |
+| 3D Engine | Three.js | Ruang 3D Galaxy |
+| Hosting | Vercel | Hosting aplikasi |
+| Backend | Vercel Functions | API dan logika server |
+| Database | Supabase PostgreSQL | Menyimpan data |
+| Authentication | Supabase Auth | Login pengguna |
+| AI Engine | OpenAI API | Pemrosesan percakapan |
+| Memory Search | PostgreSQL / pgvector | Pencarian memori |
+| Automation | n8n | Otomasi pekerjaan |
+
+### Diagram arsitektur
+
+```mermaid
+flowchart TD
+    A[Pengguna] --> B[Galaxy 3D Web]
+    B --> C[Chat Interface]
+    C --> D[Vercel Backend API]
+    D --> E[Supabase Authentication]
+    E --> F[Simpan Pesan]
+    F --> G[Ambil Memori]
+    G --> H[OpenAI API]
+    H --> I[Simpan Jawaban]
+    I --> J[Tampilkan Jawaban]
+    I --> K[Update Memory]
+    K --> L[Supabase Database]
+```
+
+### Prinsip keamanan
+
+- API key OpenAI hanya disimpan di server.
+- Jangan menanam secret key dalam file HTML.
+- Gunakan Supabase Row Level Security (RLS).
+- Setiap pengguna hanya dapat mengakses data miliknya.
+- Semua endpoint harus memvalidasi identitas pengguna.
+- Gunakan pembatasan permintaan untuk mencegah penyalahgunaan.
+
+# 5. STRUKTUR DATABASE SUPABASE
+
+Database dirancang menggunakan lima tabel utama.
+
+## 5.1 profiles
+
+Menyimpan informasi dasar pengguna.
+
+| Kolom | Tipe |
+|---|---|
+| id | uuid |
+| display_name | text |
+| created_at | timestamptz |
+
+ID mengacu pada identitas pengguna Supabase Auth.
+
+## 5.2 ai_conversations
+
+Menyimpan sesi percakapan.
+
+| Kolom | Tipe |
+|---|---|
+| id | uuid |
+| user_id | uuid |
+| title | text |
+| created_at | timestamptz |
+| updated_at | timestamptz |
+
+## 5.3 ai_messages
+
+Menyimpan semua pesan.
+
+| Kolom | Tipe |
+|---|---|
+| id | uuid |
+| conversation_id | uuid |
+| user_id | uuid |
+| role | text |
+| content | text |
+| created_at | timestamptz |
+
+Role yang digunakan:
+
+- user
+- assistant
+- system
+
+## 5.4 ai_memories
+
+Menyimpan informasi penting yang dipelajari AI.
+
+| Kolom | Tipe |
+|---|---|
+| id | uuid |
+| user_id | uuid |
+| content | text |
+| category | text |
+| source_conversation_id | uuid |
+| importance | numeric |
+| created_at | timestamptz |
+| updated_at | timestamptz |
+
+Contoh kategori:
+
+- project
+- preference
+- technical_decision
+- personal_context
+- goal
+- important_information
+
+## 5.5 ai_agent_settings
+
+Menyimpan konfigurasi AI.
+
+| Kolom | Tipe |
+|---|---|
+| user_id | uuid |
+| agent_name | text |
+| system_prompt | text |
+| memory_enabled | boolean |
+| created_at | timestamptz |
+| updated_at | timestamptz |
+
+### Diagram relasi database
+
+```mermaid
+erDiagram
+    PROFILES ||--o{ AI_CONVERSATIONS : owns
+    PROFILES ||--o{ AI_MESSAGES : owns
+    PROFILES ||--o{ AI_MEMORIES : owns
+    PROFILES ||--o| AI_AGENT_SETTINGS : configures
+    AI_CONVERSATIONS ||--o{ AI_MESSAGES : contains
+    AI_CONVERSATIONS ||--o{ AI_MEMORIES : sources
+```
+
+Catatan: relasi dan foreign key harus dibuat secara konsisten dalam migrasi SQL. Kebijakan RLS harus diterapkan pada setiap tabel yang menyimpan data pengguna.
+
+# 6. SISTEM MEMORI AI
+
+Sistem memori menjadi salah satu fitur terpenting Galaxy AI Agent.
+
+Ada empat lapisan utama.
+
+### A. Chat History
+
+Menyimpan seluruh percakapan asli.
+
+Contoh:
+
+- Pertanyaan pengguna.
+- Jawaban AI.
+- Waktu percakapan.
+- Sesi percakapan.
+
+### B. Long-Term Memory
+
+Menyimpan informasi penting yang dapat digunakan kembali.
+
+Contoh:
+
+```text
+Nama AI: Galaxy
+
+Informasi proyek:
+- Be A Leader
+- Cardora
+- Ekalaya
+- Galaxy AI Agent
+
+Preferensi:
+- Menggunakan bahasa Indonesia.
+- Menyukai antarmuka 3D.
+- Mengembangkan aplikasi berbasis web.
+
+Keputusan:
+- Menggunakan Supabase untuk database.
+- Menggunakan Vercel untuk hosting.
+```
+
+Contoh tersebut hanya ilustrasi struktur memori, bukan data yang harus disimpan tanpa persetujuan.
+
+### C. Active Context
+
+Menyediakan beberapa pesan terbaru dalam percakapan yang sedang berlangsung.
+
+### D. Memory Retrieval
+
+Ketika pengguna mengirim pertanyaan:
+
+1. Backend memvalidasi pengguna.
+2. Backend mengambil pesan terbaru.
+3. Sistem mencari memori yang relevan.
+4. Sistem menggabungkan konteks.
+5. Konteks diberikan kepada AI.
+6. AI menghasilkan jawaban.
+7. Jawaban disimpan ke database.
+
+### Pengelolaan memori
+
+Pengguna dapat:
+
+- Melihat semua memori.
+- Mengedit memori.
+- Menghapus memori.
+- Menonaktifkan memori.
+- Melihat sumber percakapan memori.
+- Menghapus riwayat percakapan.
+
+AI tidak boleh menyimpan password, token, API key, atau informasi rahasia sebagai memori.
+
+# 7. BACKEND CHAT API
+
+Endpoint utama:
+
+`POST /api/chat`
+
+Alur pemrosesan:
+
+```text
+1. Validasi sesi pengguna.
+2. Validasi isi pesan.
+3. Simpan pesan pengguna.
+4. Ambil riwayat percakapan.
+5. Cari memori relevan.
+6. Susun konteks AI.
+7. Kirim permintaan ke OpenAI API.
+8. Terima jawaban AI.
+9. Simpan jawaban AI.
+10. Proses pembaruan memori.
+11. Kirim jawaban ke frontend.
+```
+
+### Penanganan error
+
+- Jika AI gagal menjawab, pesan pengguna tetap tersimpan.
+- Jangan menampilkan jawaban sukses palsu.
+- Tampilkan pesan error yang mudah dipahami.
+- Hindari pesan ganda ketika pengguna mengirim ulang.
+- Jangan membocorkan API key atau informasi internal server.
+
+# 8. DESAIN ANTARMUKA GALAXY
+
+Tampilan ruang 3D Galaxy tetap menjadi identitas utama aplikasi.
+
+Komponen antarmuka:
+
+### 1. Galaxy 3D Space
+
+Ruang visual tempat karakter AI berada.
+
+### 2. Chat Panel
+
+Area komunikasi pengguna dan AI.
+
+### 3. Conversation Sidebar
+
+Daftar seluruh percakapan sebelumnya.
+
+### 4. Memory Center
+
+Halaman pengelolaan memori AI.
+
+### 5. Agent Status
+
+Menampilkan status AI:
+
+- Online
+- Thinking
+- Responding
+- Processing
+- Offline
+
+### 6. Settings
+
+Pengaturan:
+
+- Nama AI.
+- Karakter AI.
+- Preferensi jawaban.
+- Pengaturan memori.
+- Privasi.
+- Model AI.
+
+### 7. Agent Activity
+
+Menampilkan aktivitas agent dan riwayat tindakan.
+
+# 9. PENGEMBANGAN AI AGENT
+
+Setelah fitur chat dan memori berjalan stabil, AI dapat diberikan kemampuan tambahan.
+
+Contoh kemampuan:
+
+| Tool | Fungsi |
+|---|---|
+| Notes | Membuat catatan |
+| Task Manager | Membuat daftar pekerjaan |
+| Project Assistant | Mengelola informasi proyek |
+| Document Reader | Membaca dokumen |
+| Conversation Search | Mencari percakapan lama |
+| n8n Integration | Menjalankan workflow |
+| Web Research | Membantu riset informasi |
+| File Assistant | Membantu mengelola dokumen |
+
+Setiap tool wajib memiliki:
+
+- Validasi input.
+- Hak akses yang jelas.
+- Log aktivitas.
+- Penanganan error.
+- Konfirmasi sebelum tindakan penting.
+
+# 10. ROADMAP PENGEMBANGAN
+
+## Fase 1 — Galaxy AI Chat
+
+Pekerjaan:
+
+- Audit file HTML.
+- Menambahkan panel chat.
+- Menghubungkan Supabase Auth.
+- Membuat database percakapan.
+- Membuat backend API.
+- Menghubungkan OpenAI API.
+- Menyimpan pesan pengguna dan AI.
+
+Target:
+
+AI dapat diajak berbicara dan riwayat percakapan tersimpan.
+
+## Fase 2 — Galaxy AI Memory
+
+Pekerjaan:
+
+- Membuat database memori.
+- Mengembangkan ekstraksi memori.
+- Mengembangkan pencarian memori.
+- Mengirim memori relevan ke AI.
+- Membuat Memory Center.
+- Menambahkan edit dan hapus memori.
+
+Target:
+
+AI dapat mengingat informasi penting dari percakapan sebelumnya.
+
+## Fase 3 — Personal Assistant
+
+Pekerjaan:
+
+- Pengaturan nama AI.
+- Pengaturan kepribadian AI.
+- Ringkasan proyek.
+- Pencarian percakapan.
+- Pengelompokan percakapan.
+- Catatan pribadi.
+
+Target:
+
+AI menjadi asisten pribadi yang terorganisasi.
+
+## Fase 4 — Agent Automation
+
+Pekerjaan:
+
+- Integrasi n8n.
+- Tool catatan dan tugas.
+- Pembacaan dokumen.
+- Workflow otomatis.
+- Log tindakan agent.
+- Konfirmasi tindakan penting.
+
+Target:
+
+AI dapat membantu menyelesaikan pekerjaan.
+
+## Fase 5 — Voice & 3D Interaction
+
+Pekerjaan:
+
+- Voice input.
+- Voice output.
+- Avatar berbicara.
+- Animasi ekspresi.
+- Status visual saat AI berpikir.
+- Optimasi perangkat mobile.
+
+Target:
+
+Asisten AI multimodal dalam ruang 3D.
+
+# 11. PENGUJIAN
+
+| Pengujian | Kriteria keberhasilan |
+|---|---|
+| Penyimpanan chat | Pesan user dan AI tersimpan |
+| Refresh halaman | Riwayat tidak hilang |
+| Login ulang | Chat lama dapat dibuka |
+| Isolasi akun | Pengguna lain tidak dapat membaca chat |
+| Memori lintas sesi | AI dapat mengambil konteks relevan |
+| Edit memori | Pengguna dapat memperbaiki informasi |
+| Hapus memori | Memori yang dipilih tidak digunakan lagi |
+| API security | Secret tidak terlihat di browser |
+| Error handling | Kegagalan AI ditangani dengan benar |
+| Mobile | Chat nyaman digunakan di HP |
+| 3D performance | Animasi tidak menghambat chat |
+
+# 12. RISIKO DAN PENGENDALIAN
+
+### Biaya AI
+
+Penggunaan API dapat menimbulkan biaya. Solusi:
+
+- Batasi panjang konteks.
+- Pilih model sesuai kebutuhan.
+- Gunakan ringkasan percakapan.
+- Terapkan batas penggunaan.
+
+### Privasi
+
+Percakapan dapat berisi informasi pribadi. Solusi:
+
+- Gunakan autentikasi
